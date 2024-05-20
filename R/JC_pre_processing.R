@@ -33,3 +33,13 @@ data_jc[unique(missing_data_rows$row_id), ]$date
 # -> delete these rows (days), so there are no NA's in further analysis
 data_no_nas_jc <- data_jc[-unique(missing_data_rows$row_id),]
 sum(is.na(data_no_nas_jc)) # 0 NA'S 
+
+# datatypes
+data_no_nas_jc$Activity.Score <- as.integer(data_no_nas_jc$Activity.Score)
+data_no_nas_jc$Sleep.Score <- as.integer(data_no_nas_jc$Sleep.Score)
+data_no_nas_jc$Readiness.Score  <- as.integer(data_no_nas_jc$Readiness.Score)
+data_no_nas_jc$HRV.Balance.Score  <- as.integer(data_no_nas_jc$HRV.Balance.Score)
+
+
+
+

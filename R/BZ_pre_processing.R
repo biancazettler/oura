@@ -35,3 +35,10 @@ data_bz[unique(missing_data_rows$row_id), ]$date
 
 data_no_nas_bz <- data_bz[-unique(missing_data_rows$row_id),]
 sum(is.na(data_no_nas_bz)) # 0 NA'S 
+
+# datatypes
+data_no_nas_bz$Activity.Score <- as.integer(data_no_nas_bz$Activity.Score)
+data_no_nas_bz$Sleep.Score <- as.integer(data_no_nas_bz$Sleep.Score)
+data_no_nas_bz$Readiness.Score  <- as.integer(data_no_nas_bz$Readiness.Score)
+data_no_nas_bz$HRV.Balance.Score  <- as.integer(data_no_nas_bz$HRV.Balance.Score)
+
