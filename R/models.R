@@ -6,6 +6,7 @@ source("R/JC_pre_processing.R")
 library(brms)
 library(dynaTree)
 library(rstan)
+library(caret)
 library(rstanarm)
 
 # sleep quality and HFV:
@@ -150,7 +151,7 @@ plot(bayesian_model_sleep_jc)
 pp_check(bayesian_model_sleep_jc)
 
 # another model
-model_sleep <- brm(
+model2_sleep_jc <- brm(
   formula = Sleep.Score ~ Activity.Score + Average.HRV + Total.Burn + Temperature.Deviation...C.,
   data = data_no_nas_jc,  # Setze voraus, dass data_no_nas_bz bereits vorbereitet ist
   family = gaussian(),    # Normalverteilung der Residuen
@@ -162,4 +163,55 @@ model_sleep <- brm(
   iter = 6000
 )
 
-summary(model_sleep)
+summary(model2_sleep_jc)
+
+# another model
+model2_sleep_bz <- brm(
+  formula = Sleep.Score ~ Activity.Score + Average.HRV + Total.Burn + Temperature.Deviation...C.,
+  data = data_no_nas_bz,  # Setze voraus, dass data_no_nas_bz bereits vorbereitet ist
+  family = gaussian(),    # Normalverteilung der Residuen
+  prior = c(
+    set_prior("normal(0, 5)", class = "b"),  # Priors für die Steigungen
+    set_prior("normal(50, 10)", class = "Intercept")  # Prior für den Achsenabschnitt
+  ),
+  chains = 4,
+  iter = 6000
+)
+
+summary(model2_sleep_bz)
+
+# Lineares Modell
+linear_model_jc <- lm(Sleep.Score ~ Total.Sleep.Duration + Average.Resting.Heart.Rate + Activity.Score, data = data_no_nas_jc)
+summary(linear_model_jc)
+
+bayesian_model_jc <- brm(Sleep.Score ~ Total.Sleep.Duration + Average.Resting.Heart.Rate + Activity.Score,
+                      data = data_no_nas_jc, family = gaussian(),
+                      prior = c(set_prior("normal(0,5)", class = "b"),
+                                set_prior("cauchy(0,2)", class = "sigma")),
+                      chains = 4, iter = 2000, warmup = 1000)
+summary(bayesian_model_jc)
+
+linear_model_bz <- lm(Sleep.Score ~ Total.Sleep.Duration + Average.Resting.Heart.Rate + Activity.Score, data = data_no_nas_bz)
+summary(linear_model_bz)
+
+bayesian_model_bz <- brm(Sleep.Score ~ Total.Sleep.Duration + Average.Resting.Heart.Rate + Activity.Score,
+                         data = data_no_nas_bz, family = gaussian(),
+                         prior = c(set_prior("normal(0,5)", class = "b"),
+                                   set_prior("cauchy(0,2)", class = "sigma")),
+                         chains = 4, iter = 2000, warmup = 1000)
+summary(bayesian_model_bz)
+
+# Kreuzvalidierung
+nas_removed_jc <- na.omit(data_no_nas_jc) 
+train_control <- trainControl(method = "cv", number = 10)
+model_cv_jc <- train(Sleep.Score ~ Total.Sleep.Duration + Average.Resting.Heart.Rate + Activity.Score,
+                  data = nas_removed_jc, method = "lm",
+                  trControl = train_control)
+print(model_cv_jc)
+
+nas_removed_bz <- na.omit(data_no_nas_bz) 
+train_control <- trainControl(method = "cv", number = 10)
+model_cv_bz <- train(Sleep.Score ~ Total.Sleep.Duration + Average.Resting.Heart.Rate + Activity.Score,
+                     data = nas_removed_bz, method = "lm",
+                     trControl = train_control)
+print(model_cv_bz)
