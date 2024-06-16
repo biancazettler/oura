@@ -1,3 +1,5 @@
+############################## TO DO: USE CURRENT NEWEST DATE ############################
+
 # install packages 
 library(tidyverse)
 library(dplyr)
@@ -5,10 +7,10 @@ library(dplyr)
 # data of another person
 # get data 
 #getwd()
-data_jc <- read.csv("data/jc_oura.csv")
+data_jc <- read.csv("data/jc_oura_old.csv")
 head(data_jc)
 min(data_jc$date) # starting date: 2021-02-09
-max(data_jc$date) # end date: 2024-05-18 -> data of more than 3 years
+max(data_jc$date) # end date: current date -> data of more than 3 years
 
 # data cleansing / pre processing
 # NA's (missing values)
@@ -39,6 +41,7 @@ data_no_nas_jc$Activity.Score <- as.integer(data_no_nas_jc$Activity.Score)
 data_no_nas_jc$Sleep.Score <- as.integer(data_no_nas_jc$Sleep.Score)
 data_no_nas_jc$Readiness.Score  <- as.integer(data_no_nas_jc$Readiness.Score)
 data_no_nas_jc$HRV.Balance.Score  <- as.integer(data_no_nas_jc$HRV.Balance.Score)
+# new NA's in activity score and balance score (None -> NA)
 
 
 

@@ -1,4 +1,6 @@
-source("pre_processing.R")
+source("R/BZ_pre_processing.R")
+source("R/JC_pre_processing.R")
+
 
 # Bayesian models
 library(brms)
@@ -70,3 +72,94 @@ model_activity_bz <- stan_glm(Activity.Score ~ Sleep.Score + Readiness.Score + H
 
 print(summary(model_activity_bz))
 plot(model_activity_bz)
+
+# Modell für die Vorhersage des Sleep Scores basierend auf Activity Score
+model_sleep_jc <- stan_glm(Sleep.Score ~ Activity.Score + Total.Bedtime + Average.Resting.Heart.Rate,
+                  data = data_no_nas_jc,
+                  family = gaussian(),
+                  prior = normal(0, 2, autoscale = TRUE),  # Priors leicht restriktiv gewählt
+                  chains = 4,
+                  iter = 2000)
+print(summary(model_sleep_jc))
+plot(model_sleep_jc)
+
+model_sleep_bz <- stan_glm(Sleep.Score ~ Activity.Score + Total.Bedtime + Average.Resting.Heart.Rate,
+                        data = data_no_nas_bz,
+                        family = gaussian(),
+                        prior = normal(0, 2, autoscale = TRUE),  # Priors leicht restriktiv gewählt
+                        chains = 4,
+                        iter = 2000)
+print(summary(model_sleep_bz))
+plot(model_sleep_bz)
+
+# Build a Bayesian linear regression model
+# Model: Sleep Score predicted by sleep variables
+bayesian_model_sleep_bz <- brm(
+  formula = Sleep.Score ~ Total.Sleep.Score + Average.Resting.Heart.Rate 
+  + REM.Sleep.Score + Deep.Sleep.Score + Sleep.Efficiency.Score + Restfulness.Score + Sleep.Latency.Score 
+  + Sleep.Timin.Score + Total.Sleep.Duration + Total.Bedtime + Awake.Time + REM.Sleep.Duration + Light.Sleep.Duration 
+  + Sleep.Efficiency + Sleep.Latency + Sleep.Timing, 
+  data = data_no_nas_bz, 
+  family = gaussian(),  # Assuming Sleep Score is a continuous variable
+  prior = c(
+    set_prior("normal(0, 5)", class = "b"),  # Priors for the regression coefficients
+    set_prior("normal(0, 10)", class = "Intercept"),  # Prior for the intercept
+    set_prior("exponential(1)", class = "sigma")  # Prior for the error term
+  ),
+  chains = 4,  # Number of Markov Chain Monte Carlo chains
+  iter = 4000,  # Number of iterations per chain
+  warmup = 1000,  # Number of warmup iterations
+  control = list(adapt_delta = 0.95)  # Increasing adapt_delta to handle potential convergence issues
+)
+
+# Print the summary of the model
+summary(bayesian_model_sleep_bz)
+
+# Check diagnostics using built-in plot functions
+plot(bayesian_model_sleep_bz)
+
+# check model fit
+pp_check(bayesian_model_sleep_bz)
+
+# other data:
+bayesian_model_sleep_jc <- brm(
+  formula = Sleep.Score ~ Total.Sleep.Score + Average.Resting.Heart.Rate 
+  + REM.Sleep.Score + Deep.Sleep.Score + Sleep.Efficiency.Score + Restfulness.Score + Sleep.Latency.Score 
+  + Sleep.Timin.Score + Total.Sleep.Duration + Total.Bedtime + Awake.Time + REM.Sleep.Duration + Light.Sleep.Duration 
+  + Sleep.Efficiency + Sleep.Latency + Sleep.Timing, 
+  data = data_no_nas_jc, 
+  family = gaussian(),  # Assuming Sleep Score is a continuous variable
+  prior = c(
+    set_prior("normal(0, 5)", class = "b"),  # Priors for the regression coefficients
+    set_prior("normal(0, 10)", class = "Intercept"),  # Prior for the intercept
+    set_prior("exponential(1)", class = "sigma")  # Prior for the error term
+  ),
+  chains = 4,  # Number of Markov Chain Monte Carlo chains
+  iter = 4000,  # Number of iterations per chain
+  warmup = 1000,  # Number of warmup iterations
+  control = list(adapt_delta = 0.95)  # Increasing adapt_delta to handle potential convergence issues
+)
+
+# Print the summary of the model
+summary(bayesian_model_sleep_jc)
+
+# Check diagnostics using built-in plot functions
+plot(bayesian_model_sleep_jc)
+
+# check model fit
+pp_check(bayesian_model_sleep_jc)
+
+# another model
+model_sleep <- brm(
+  formula = Sleep.Score ~ Activity.Score + Average.HRV + Total.Burn + Temperature.Deviation...C.,
+  data = data_no_nas_jc,  # Setze voraus, dass data_no_nas_bz bereits vorbereitet ist
+  family = gaussian(),    # Normalverteilung der Residuen
+  prior = c(
+    set_prior("normal(0, 5)", class = "b"),  # Priors für die Steigungen
+    set_prior("normal(50, 10)", class = "Intercept")  # Prior für den Achsenabschnitt
+  ),
+  chains = 4,
+  iter = 6000
+)
+
+summary(model_sleep)
