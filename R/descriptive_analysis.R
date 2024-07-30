@@ -35,3 +35,27 @@ pairs(~ Sleep.Score + Activity.Score + Average.Resting.Heart.Rate, data=data_no_
 
 pairs(~ Sleep.Score + Total.Sleep.Duration + Average.Resting.Heart.Rate + Activity.Score + Temperature.Deviation...C., data = data_no_nas_bz)
 pairs(~ Sleep.Score + Total.Sleep.Duration + Average.Resting.Heart.Rate + Activity.Score + Temperature.Deviation...C., data = data_no_nas_jc)
+
+# search for outliers
+# Boxplot für eine kontinuierliche Variable
+boxplot(data_no_nas_jc$Sleep.Score, main = "Boxplot - Sleep Score")
+boxplot(data_no_nas_bz$Sleep.Score, main = "Boxplot - Sleep Score")
+
+# Berechnung von Z-Scores für 'Sleep.Score'
+z_scores_jc <- scale(data_no_nas_jc$Sleep.Score)
+data_no_nas_jc$z_score <- z_scores_jc
+z_scores_bz <- scale(data_no_nas_bz$Sleep.Score)
+data_no_nas_bz$z_score <- z_scores_bz
+
+# Filtern von Ausreißern
+outliers_jc <- data_no_nas_jc[abs(data_no_nas_jc$z_score) > 3,]
+print(outliers_jc)
+nrow(outliers_jc) # 3 days
+outliers_bz <- data_no_nas_bz[abs(data_no_nas_bz$z_score) > 3,]
+print(outliers_bz)
+nrow(outliers_bz) # 3 days
+
+# Entscheidung über Umgang mit Ausreißern: Entfernen oder Behalten
+data_no_outliers_jc <- data_no_nas_jc[abs(data_no_nas_jc$z_score) <= 3,]
+data_no_outliers_bz <- data_no_nas_bz[abs(data_no_nas_bz$z_score) <= 3,]
+

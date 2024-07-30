@@ -42,7 +42,18 @@ data_no_nas_jc$Sleep.Score <- as.integer(data_no_nas_jc$Sleep.Score)
 data_no_nas_jc$Readiness.Score  <- as.integer(data_no_nas_jc$Readiness.Score)
 data_no_nas_jc$HRV.Balance.Score  <- as.integer(data_no_nas_jc$HRV.Balance.Score)
 # new NA's in activity score and balance score (None -> NA)
+data_no_nas_jc <- na.omit(data_no_nas_jc)
+summary(data_no_nas_jc)
+nrow(data_no_nas_jc) # 713 rows = 713 days ~ 2 Years
 
-
-
+# Another way of handling NA's: Imputation (median or mean)
+library(mice)
+# easy Imputation with mean
+data_imputed_jc <- data_jc
+for(i in 1:ncol(data_jc)) {
+  data_imputed_jc[is.na(data_imputed_jc[, i]), i] <- mean(data_jc[, i], na.rm = TRUE)
+}
+nrow(data_imputed_jc)
+# 872 rows (days), so a ~ 5 months more data than when NA's would be removed. 
+################ TODO: try models with this data and check for differences! #####################
 

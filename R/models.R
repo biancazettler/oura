@@ -215,3 +215,13 @@ model_cv_bz <- train(Sleep.Score ~ Total.Sleep.Duration + Average.Resting.Heart.
                      data = nas_removed_bz, method = "lm",
                      trControl = train_control)
 print(model_cv_bz)
+
+# sleep score and activity score 
+
+sleep_activity <- brm(Sleep.Score ~ Activity.Score,
+                      data = data_no_nas_jc, 
+                      family = gaussian(),
+                      prior = c(set_prior("normal(0,10)", class = "b"),
+                                set_prior("exponential(1)", class = "sigma")),
+                      chains = 4, iter = 2000, warmup = 1000, 
+                      control = list(adapt_delta = 0.95))
