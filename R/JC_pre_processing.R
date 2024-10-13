@@ -82,6 +82,42 @@ shapiro.test(standardized_data_jc$Sleep.Score)
 
 ################ TO DO: keine Normalverteilung der Zielgröße Sleep Score -> Transformierung!
 
+# Prüfen der Zielgröße auf normalverteilung
+install.packages("ggplot2")
+install.packages("ggpubr")  # Für den Q-Q-Plot
+install.packages("stats")
 
+library(ggplot2)
+library(ggpubr)
+
+# Histogramm
+ggplot(main_scores, aes(x = Sleep.Score)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Histogramm des Sleep Scores")
+
+# Q-Q-Plot
+ggqqplot(main_scores$Sleep.Score)
+
+# Shapiro-Wilk-Test
+shapiro_test <- shapiro.test(main_scores$Sleep.Score)
+print(shapiro_test)
+
+# Logarithmische Transformation
+main_scores$Log.Sleep.Score <- log(main_scores$Sleep.Score)
+
+# Überprüfe erneut die Normalverteilung des transformierten Scores
+shapiro_test_log <- shapiro.test(main_scores$Log.Sleep.Score)
+print(shapiro_test_log)
+
+# Histogramm des transformierten Scores
+ggplot(main_scores, aes(x = Log.Sleep.Score)) +
+  geom_histogram(binwidth = 0.1, fill = "blue", color = "black") +
+  labs(title = "Histogramm des logarithmisch transformierten Sleep Scores")
+
+# Q-Q-Plot
+qqnorm(main_scores$Log.Sleep.Score)
+qqline(main_scores$Log.Sleep.Score, col = "red")
+
+# PROBLEM: sleep score immer noch nicht normalverteilt
 
 
