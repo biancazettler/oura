@@ -7,7 +7,7 @@ summary(data_no_nas_bz[c("Sleep.Score", "Activity.Score", "Average.Resting.Heart
 summary(data_no_nas_jc)
 summary(data_no_nas_jc[c("Sleep.Score", "Activity.Score", "Average.Resting.Heart.Rate")])
 
-# Histogramme für Schlafqualität, Aktivitätsscore und Ruheherzfrequenz
+# Histogram for sleep score, activity score and resting heart rate
 hist(data_no_nas_bz$Sleep.Score, main="Verteilung der Schlafqualität", xlab="Schlafqualität")
 hist(data_no_nas_bz$Activity.Score, main="Verteilung der Aktivitätsscores", xlab="Aktivitätsscore")
 hist(data_no_nas_bz$Average.Resting.Heart.Rate, main="Verteilung der Ruheherzfrequenz", xlab="Ruheherzfrequenz")

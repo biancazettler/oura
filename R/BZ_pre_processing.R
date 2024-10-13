@@ -5,7 +5,7 @@ library(dplyr)
 # own data
 # get data 
 #getwd()
-data_bz <- read.csv("data/oura_2024-02-01_2024-07-30_trends.csv")
+data_bz <- read.csv("data/oura_2024-02-01_2024-09-17_trends.csv")
 head(data_bz)
 min(data_bz$date) # starting date: 2024-02-23
 max(data_bz$date) # end date: current date -> ~ 5 months 
@@ -56,6 +56,29 @@ nrow(data_imputed_bz)
 # 159 rows (days), so 3 weeks more data than when NA's would be removed. 
 ################ TODO: try models with this data and check for differences! #####################
 
+# Standardisierung der Prädiktoren
+standardized_data_bz <- data_no_nas_bz
+numerical_columns <- sapply(standardized_data_bz, is.numeric)  # Identifiziere nur numerische Spalten
+
+standardized_data_bz[, numerical_columns] <- scale(standardized_data_bz[, numerical_columns])
+
+# Überprüfung der Skalierung
+summary(standardized_data_bz)
+
+# Histogramm von Sleep.Score um Zielvariable auf Normalverteilung zu überprüfen
+hist(standardized_data_bz$Sleep.Score, main = "Histogram of Sleep Score", xlab = "Sleep Score")
+
+# Q-Q-Plot
+qqnorm(standardized_data_bz$Sleep.Score)
+qqline(standardized_data_bz$Sleep.Score)
+
+# logarithmierung geht nicht, da viele Werte nicht positiv sind
+
+# Shapiro-Wilk Test auf Normalverteilung
+shapiro.test(standardized_data_bz$Sleep.Score)
+# -> keine Normalverteilung!
+
+################ TO DO: keine Normalverteilung der Zielgröße Sleep Score -> Transformierung!
 
 
 
