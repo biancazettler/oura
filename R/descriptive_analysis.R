@@ -1,5 +1,6 @@
 source("R/BZ_pre_processing.R")
 source("R/JC_pre_processing.R")
+library(ggplot2)
 
 # descriptive analysis 
 summary(data_no_nas_bz)
@@ -58,4 +59,54 @@ nrow(outliers_bz) # 3 days
 # Entscheidung über Umgang mit Ausreißern: Entfernen oder Behalten
 data_no_outliers_jc <- data_no_nas_jc[abs(data_no_nas_jc$z_score) <= 3,]
 data_no_outliers_bz <- data_no_nas_bz[abs(data_no_nas_bz$z_score) <= 3,]
+
+
+
+#### deskriptive analyse zielgröße
+
+# sleep score
+# Verteilung des Sleep Scores
+ggplot(data_imputed_jc, aes(x = Sleep.Score)) + 
+  geom_histogram(binwidth = 5, fill = "lightblue") + 
+  labs(title = "Verteilung des Sleep Scores", x = "Sleep Score", y = "Häufigkeit")
+
+# Boxplot zur Visualisierung von Ausreißern
+ggplot(data_imputed_jc, aes(x = "", y = Sleep.Score)) + 
+  geom_boxplot() + 
+  labs(title = "Boxplot des Sleep Scores", x = "", y = "Sleep Score")
+
+# gesamtschlafzeit
+ggplot(data_jc, aes(x = Total.Sleep.Duration)) + 
+  geom_histogram(binwidth = 500, fill = "green") + 
+  labs(title = "Verteilung der Gesamtschlafzeit", x = "Total Sleep Duration (sec)")
+
+# rem schlafzeit
+ggplot(data_jc, aes(x = REM.Sleep.Score)) + 
+  geom_histogram(binwidth = 5, fill = "purple") + 
+  labs(title = "Verteilung des REM Sleep Scores", x = "REM Sleep Score")
+
+
+#### deskriptive analyse einflussfaktoren 
+
+# Aktivitätsbewertung
+ggplot(data_imputed_jc, aes(x = Activity.Score)) + 
+  geom_histogram(binwidth = 5, fill = "lightblue") + 
+  labs(title = "Verteilung des Activity Scores", x = "Activity Score")
+
+# Ruheherzfrequenz
+ggplot(data_imputed_jc, aes(x = Average.Resting.Heart.Rate)) + 
+  geom_histogram(binwidth = 2, fill = "lightgreen") + 
+  labs(title = "Verteilung der Ruheherzfrequenz", x = "Average Resting Heart Rate")
+
+# HRV
+ggplot(data_imputed_jc, aes(x = Average.HRV)) + 
+  geom_histogram(binwidth = 5, fill = "purple") + 
+  labs(title = "Verteilung der Herzfrequenzvariabilität", x = "Average HRV")
+
+# Körpertemperaturabweichung
+ggplot(data_imputed_jc, aes(x = Temperature.Deviation...C.)) + 
+  geom_histogram(binwidth = 0.1, fill = "orange") + 
+  labs(title = "Verteilung der Körpertemperaturabweichung", x = "Temperature Deviation (Celsius)")
+
+
 

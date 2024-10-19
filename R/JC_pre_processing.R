@@ -4,11 +4,11 @@
 library(tidyverse)
 library(dplyr)
 
-# data of another person
 # get data 
 #getwd()
 data_jc <- read.csv("data/oura_2020-08-01_2024-10-13_trends.csv")
 head(data_jc)
+summary(data_jc)
 min(data_jc$date) # starting date: 2021-02-09
 max(data_jc$date) # end date: current date -> data of more than 3,5 years
 
@@ -48,76 +48,64 @@ nrow(data_no_nas_jc) # 839 rows = 839 days ~ 2,3 Years
 
 # Another way of handling NA's: Imputation (median or mean)
 library(mice)
-# easy Imputation with mean
+# Kopiere den ursprünglichen Datensatz
 data_imputed_jc <- data_jc
-for(i in 1:ncol(data_jc)) {
-  data_imputed_jc[is.na(data_imputed_jc[, i]), i] <- mean(data_jc[, i], na.rm = TRUE)
+# Wandelt alle "None" Werte in NA um
+data_imputed_jc[data_imputed_jc == "None"] <- NA
+# Umwandlung der Datumsfelder in das Datumsformat (falls notwendig)
+data_imputed_jc$date <- as.Date(data_imputed_jc$date, format="%Y-%m-%d")
+data_imputed_jc$Bedtime.Start <- as.POSIXct(data_imputed_jc$Bedtime.Start, format="%Y-%m-%dT%H:%M:%OS")
+data_imputed_jc$Bedtime.End <- as.POSIXct(data_imputed_jc$Bedtime.End, format="%Y-%m-%dT%H:%M:%OS")
+# Konvertiere nicht-numerische Variablen, falls nötig, in numerische Variablen
+data_imputed_jc <- data_imputed_jc %>%
+  mutate_if(is.character, as.numeric)
+# easy Imputation with mean
+for(i in 1:ncol(data_imputed_jc)) {
+  data_imputed_jc[is.na(data_imputed_jc[, i]), i] <- mean(data_imputed_jc[, i], na.rm = TRUE)
 }
 nrow(data_imputed_jc)
+
 # 1016 rows (days) -> 2,8 years, so ~ 5 months more data than when NA's would be removed. 
 ################ TODO: try models with this data and check for differences! #####################
 
+#### select scores data from data without nas and set numeric datatypes
+scores_no_nas <- data_no_nas_jc %>%
+  select(Sleep.Score, Total.Sleep.Score, REM.Sleep.Score, Deep.Sleep.Score, 
+         Sleep.Efficiency.Score, Restfulness.Score, Sleep.Latency.Score,
+         Sleep.Timin.Score, Activity.Score, Stay.Active.Score, Move.Every.Hour.Score,
+         HRV.Balance.Score, Activity.Balance.Score, Readiness.Score, Temperature.Score,
+         Resting.Heart.Rate.Score)
 
-# Standardisierung der Prädiktoren
-standardized_data_jc <- data_no_nas_jc
-numerical_columns <- sapply(standardized_data_jc, is.numeric)  # Identifiziere nur numerische Spalten
+# convert to numeric datatypes
+scores_data_no_nas <- scores_no_nas %>% mutate_at(vars(Sleep.Score, Total.Sleep.Score, REM.Sleep.Score, Deep.Sleep.Score, 
+                                                      Sleep.Efficiency.Score, Restfulness.Score, Sleep.Latency.Score,
+                                                      Sleep.Timin.Score, Activity.Score, Stay.Active.Score, Move.Every.Hour.Score,
+                                                      HRV.Balance.Score, Activity.Balance.Score, Readiness.Score, Temperature.Score,
+                                                      Resting.Heart.Rate.Score), as.numeric)
 
-standardized_data_jc[, numerical_columns] <- scale(standardized_data_jc[, numerical_columns])
+# check for nas and remove them
+sum(is.na(scores_data_no_nas)) # 7
+scores_data_no_nas_jc <- na.omit(scores_data_no_nas)
+sum(is.na(scores_data_no_nas_jc)) # 0
+str(scores_data_no_nas_jc)
+nrow(scores_data_no_nas_jc)
 
-# Überprüfung der Skalierung
-summary(standardized_data_jc)
+#### do the same with data with imputed nas 
 
-# Histogramm von Sleep.Score um Zielvariable auf Normalverteilung zu überprüfen
-hist(standardized_data_jc$Sleep.Score, main = "Histogram of Sleep Score", xlab = "Sleep Score")
+scores_data <- data_imputed_jc %>%
+  select(Sleep.Score, Total.Sleep.Score, REM.Sleep.Score, Deep.Sleep.Score, 
+         Sleep.Efficiency.Score, Restfulness.Score, Sleep.Latency.Score,
+         Sleep.Timin.Score, Activity.Score, Stay.Active.Score, Move.Every.Hour.Score,
+         HRV.Balance.Score, Activity.Balance.Score, Readiness.Score, Temperature.Score,
+         Resting.Heart.Rate.Score)
 
-# Q-Q-Plot
-qqnorm(standardized_data_jc$Sleep.Score)
-qqline(standardized_data_jc$Sleep.Score)
+# convert to numeric datatypes
+scores_data_numeric <- scores_data %>% mutate_at(vars(Sleep.Score, Total.Sleep.Score, REM.Sleep.Score, Deep.Sleep.Score, 
+                                                      Sleep.Efficiency.Score, Restfulness.Score, Sleep.Latency.Score,
+                                                      Sleep.Timin.Score, Activity.Score, Stay.Active.Score, Move.Every.Hour.Score,
+                                                      HRV.Balance.Score, Activity.Balance.Score, Readiness.Score, Temperature.Score,
+                                                      Resting.Heart.Rate.Score), as.numeric)
 
-# logarithmierung geht nicht, da viele Werte nicht positiv sind
-
-# Shapiro-Wilk Test auf Normalverteilung
-shapiro.test(standardized_data_jc$Sleep.Score)
-# -> keine Normalverteilung!
-
-################ TO DO: keine Normalverteilung der Zielgröße Sleep Score -> Transformierung!
-
-# Prüfen der Zielgröße auf normalverteilung
-install.packages("ggplot2")
-install.packages("ggpubr")  # Für den Q-Q-Plot
-install.packages("stats")
-
-library(ggplot2)
-library(ggpubr)
-
-# Histogramm
-ggplot(main_scores, aes(x = Sleep.Score)) +
-  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
-  labs(title = "Histogramm des Sleep Scores")
-
-# Q-Q-Plot
-ggqqplot(main_scores$Sleep.Score)
-
-# Shapiro-Wilk-Test
-shapiro_test <- shapiro.test(main_scores$Sleep.Score)
-print(shapiro_test)
-
-# Logarithmische Transformation
-main_scores$Log.Sleep.Score <- log(main_scores$Sleep.Score)
-
-# Überprüfe erneut die Normalverteilung des transformierten Scores
-shapiro_test_log <- shapiro.test(main_scores$Log.Sleep.Score)
-print(shapiro_test_log)
-
-# Histogramm des transformierten Scores
-ggplot(main_scores, aes(x = Log.Sleep.Score)) +
-  geom_histogram(binwidth = 0.1, fill = "blue", color = "black") +
-  labs(title = "Histogramm des logarithmisch transformierten Sleep Scores")
-
-# Q-Q-Plot
-qqnorm(main_scores$Log.Sleep.Score)
-qqline(main_scores$Log.Sleep.Score, col = "red")
-
-# PROBLEM: sleep score immer noch nicht normalverteilt
-
-
+sum(is.na(scores_data_numeric)) # 0
+str(scores_imputed_nas_jc)
+nrow(scores_imputed_nas_jc)

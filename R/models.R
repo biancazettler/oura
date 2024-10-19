@@ -1,8 +1,14 @@
+source("R/BZ_pre_processing.R")
+source("R/JC_pre_processing.R")
+
 install.packages("brms")
 install.packages("tidyverse")  # für Datenmanipulation und ggplot2
 library(brms)
 library(tidyverse)
 
+###### TO DO: modelle mit daten ohne nas und daten mit imputation der nas vergleichen
+
+############## models with scores data ##########################################
 # Modellformel
 formula <- Sleep.Score ~ Activity.Score + HRV.Balance.Score + Temperature.Score + Resting.Heart.Rate.Score
 
@@ -91,3 +97,66 @@ ordinal_model <- brm(
 )
 
 summary(ordinal_model)
+
+# ergebnis: nur resting heart rate score zeigt signifikanten (positiven) einfluss
+# auf sleep score
+
+multinomial_model <- brm(
+  Score_Category ~ Activity.Score + HRV.Balance.Score + Temperature.Score + Resting.Heart.Rate.Score,
+  data = main_scores,
+  family = categorical(),
+  iter = 4000,
+  warmup = 2000,
+  chains = 4
+)
+
+summary(multinomial_model)
+
+################## models with sleep score and highly correlated predictors #################
+
+# Bayesianisches lineares Regressionsmodell erstellen
+model <- brm(
+  formula = Sleep.Score ~ Average.Resting.Heart.Rate + Lowest.Resting.Heart.Rate + Average.HRV,
+  data = data_imputed_jc,
+  family = gaussian(),  # Annahme normalverteilter Residuen
+  prior = c(set_prior("normal(0, 10)", class = "b"),  # Vage Priors für die Regressionskoeffizienten
+            set_prior("normal(0, 10)", class = "Intercept")),
+  iter = 2000,          # Anzahl der Iterationen (je mehr, desto stabiler die Schätzung)
+  chains = 4,           # Anzahl der MCMC-Ketten
+  warmup = 500,         # Aufwärmphase für das Modell
+  cores = 4             # Anzahl der CPU-Kerne für paralleles Sampling
+)
+
+# Modellzusammenfassung anzeigen
+summary(model)
+
+# nach Korrelationsanalyse und Überprüfung der Modellannahmen: einfaches Modell
+# mit Average Resting Heart Rate und Average HRV
+
+# Modellformel definieren
+formula <- bf(Sleep.Score ~ Average.HRV + Average.Resting.Heart.Rate)
+# Priorverteilungen festlegen
+priors <- c(
+  set_prior("normal(0, 10)", class = "b"),         # Prior für die Regressionskoeffizienten
+  set_prior("normal(0, 10)", class = "Intercept")  # Prior für den Intercept
+)
+# Bayesianisches Modell anpassen
+model_heart_rate <- brm(
+  formula = formula, 
+  data = data_imputed_jc,          # Deine Daten
+  prior = priors,                  # Definierte Priorverteilungen
+  family = gaussian(),             # Für kontinuierliche Daten (normalverteilte Residuen)
+  iter = 2000,                     # Anzahl der Iterationen
+  chains = 4,                      # Anzahl der MCMC-Ketten
+  warmup = 500,                    # Anzahl der Warmup-Iterationen
+  cores = 4                        # Anzahl der verwendeten Prozessorkerne (zur Beschleunigung)
+)
+summary(model_heart_rate)
+plot(model_heart_rate)
+
+# Posterior-Dichteplots anzeigen
+plot(model_heart_rate, ask = FALSE)
+
+# Posterior-Proben für bestimmte Koeffizienten extrahieren
+posterior_samples <- posterior_samples(model_heart_rate, pars = c("b_Average.HRV", "b_Average.Resting.Heart.Rate"))
+head(posterior_samples)
