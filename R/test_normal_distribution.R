@@ -155,3 +155,11 @@ ggplot(data_imputed_jc, aes(x = Activity.Score, y = sqrt_Sleep_Score)) +
        y = "Quadratwurzel(Sleep Score)")
 # problem: fast waagrecht -> kein wirklicher einfluss => im Modell weglassen
 
+# Scatterplot der transformierten Zielvariable vs. Datum
+ggplot(data_imputed_jc, aes(x = date, y = sqrt_Sleep_Score)) + 
+  geom_point() + 
+  geom_smooth(method = "lm", se = FALSE) + 
+  labs(title = "Beziehung zwischen Datum und transformiertem Sleep Score", 
+       x = "Datum", 
+       y = "Quadratwurzel(Sleep Score)")
+# 

@@ -178,3 +178,46 @@ model_sleep_weekend <- brm(
 
 # Modell zusammenfassen
 summary(model_sleep_weekend)
+
+# dasselbe für sleep.score untransformiert:
+# wochenend effekt:
+# Datumsspalte in ein Date-Format umwandeln
+data_imputed_jc$date <- as.Date(data_imputed_jc$date)
+
+# Erstellen einer neuen Spalte, die angibt, ob es sich um einen Wochenendtag handelt
+data_imputed_jc$is_weekend <- ifelse(weekdays(data_imputed_jc$date) %in% c("Samstag", "Sonntag"), 1, 0)
+
+# Das Modell mit dem Wochenend-Effekt
+model_sleep_score_weekend <- brm(
+  Sleep.Score ~ Average.HRV + Average.Resting.Heart.Rate + is_weekend,
+  data = data_imputed_jc,
+  family = gaussian(),
+  prior = c(set_prior("normal(0, 10)", class = "b"))
+)
+
+# Modell zusammenfassen
+summary(model_sleep_score_weekend)
+
+# externe Variable Mondphasen mit ins Modell:
+library(lunar)
+
+# Datum in das richtige Format bringen, falls noch nicht geschehen
+data_imputed_jc$date <- as.Date(data_imputed_jc$date)
+
+# Mondphasen für jedes Datum berechnen
+data_imputed_jc$moon_phase <- lunar.phase(data_imputed_jc$date, name = TRUE)
+
+# Mondphasen als Faktor umwandeln, um sie im Modell zu verwenden
+data_imputed_jc$moon_phase <- factor(data_imputed_jc$moon_phase)
+
+model_sleep_moon <- brm(
+  Sleep.Score ~ Average.HRV + Average.Resting.Heart.Rate + is_weekend + moon_phase,
+  data = data_imputed_jc,
+  family = gaussian(),
+  prior = c(set_prior("normal(0, 10)", class = "b"))
+)
+
+# Modell zusammenfassen
+summary(model_sleep_moon)
+
+

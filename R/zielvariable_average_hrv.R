@@ -94,8 +94,9 @@ cor_matrix <- cor(data_imputed_jc[c("Temperature.Deviation...C.", "Respiratory.R
 library(car)
 model <- lm(Average.HRV ~ Temperature.Deviation...C. + Respiratory.Rate + Rest.Time + Low.Activity.Time + Average.MET +
               Readiness.Score + Previous.Night.Score + Previous.Day.Activity.Score, data = data_imputed_jc)
-
-vif(model) # -> KEINE multikollinearität vorhanden 
+# Variance Inflation Factor (VIF)-Werte
+vif(model) # -> KEINE multikollinearität vorhanden, da 1 -> keine Korrelation mit anderen Prädiktoren, 1 bis 5 -> unproblematisch
+# ( = keine Mulitkollinearität, bei mir sind alle < 3) und ab 10 hohe korrelation
 
 # 3. bayesianische Modelle mit ZG Average HRV
 # Lade das brms Paket
@@ -117,3 +118,71 @@ summary(model_hrv)
 # Posterior Plot
 plot(model_hrv)
 # Ergebnisse: siehe notizen
+
+# wochenend effekt:
+# Datumsspalte in ein Date-Format umwandeln
+data_imputed_jc$date <- as.Date(data_imputed_jc$date)
+
+# Erstellen einer neuen Spalte, die angibt, ob es sich um einen Wochenendtag handelt
+data_imputed_jc$is_weekend <- ifelse(weekdays(data_imputed_jc$date) %in% c("Samstag", "Sonntag"), 1, 0)
+
+# Das Modell mit dem Wochenend-Effekt
+model_hrv_weekend <- brm(
+  Average.HRV ~ Temperature.Deviation...C. + Respiratory.Rate + Rest.Time + Low.Activity.Time + 
+    Average.MET + Readiness.Score + Previous.Night.Score + Previous.Day.Activity.Score + is_weekend,
+  data = data_imputed_jc,
+  family = gaussian(),
+  prior = c(set_prior("normal(0, 10)", class = "b"))
+)
+
+# Modell zusammenfassen
+summary(model_hrv_weekend)
+
+# externe Variable Mondphasen mit ins Modell:
+library(lunar)
+
+# Datum in das richtige Format bringen, falls noch nicht geschehen
+data_imputed_jc$date <- as.Date(data_imputed_jc$date)
+
+# Mondphasen für jedes Datum berechnen
+data_imputed_jc$moon_phase <- lunar.phase(data_imputed_jc$date, name = TRUE)
+
+# Mondphasen als Faktor umwandeln, um sie im Modell zu verwenden
+data_imputed_jc$moon_phase <- factor(data_imputed_jc$moon_phase)
+
+model_hrv_moon <- brm(
+  formula = Average.HRV ~ Temperature.Deviation...C. + Respiratory.Rate + Rest.Time + Low.Activity.Time + 
+    Average.MET + Readiness.Score + Previous.Night.Score + Previous.Day.Activity.Score + is_weekend + moon_phase, 
+  data = data_imputed_jc,
+  family = gaussian(),
+  prior = c(set_prior("normal(0, 10)", class = "b"))
+)
+
+# Modell zusammenfassen
+summary(model_hrv_moon)
+
+library("xlsx")
+# externe einflussgröße wetter für münchen:
+weather <- read.xlsx("data/weather.xlsx", sheetIndex = 1)
+head(data_jc)
+summary(data_jc)
+
+weather$date <- as.Date(weather$date, format = "%Y-%m-%d")
+
+# Verbinde die Wetterdaten mit Daten
+library(dplyr)
+data_weather <- left_join(data_imputed_jc, weather, by = "date")
+
+head(data_weather)
+
+# modell:
+model_hrv_weather <- brm(
+  formula = Average.HRV ~ Temperature.Deviation...C. + Respiratory.Rate + Rest.Time + Low.Activity.Time + 
+    Average.MET + Readiness.Score + Previous.Night.Score + Previous.Day.Activity.Score + 
+    is_weekend + moon_phase + snow + wspd, 
+  data = data_weather,
+  family = gaussian(),
+  prior = c(set_prior("normal(0, 10)", class = "b"))
+)
+
+summary(model_hrv_weather)
