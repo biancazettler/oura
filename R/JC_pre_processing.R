@@ -107,5 +107,5 @@ scores_data_numeric <- scores_data %>% mutate_at(vars(Sleep.Score, Total.Sleep.S
                                                       Resting.Heart.Rate.Score), as.numeric)
 
 sum(is.na(scores_data_numeric)) # 0
-str(scores_imputed_nas_jc)
-nrow(scores_imputed_nas_jc)
+str(scores_data_numeric)
+nrow(scores_data_numeric)
