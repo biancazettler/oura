@@ -1,4 +1,4 @@
-source("R/BZ_pre_processing.R")
+#source("R/BZ_pre_processing.R")
 source("R/JC_pre_processing.R")
 
 # correlation analysis
@@ -112,7 +112,7 @@ data_no_nas_jc$Bedtime.Start <- as.POSIXct(data_no_nas_jc$Bedtime.Start, format 
 data_no_nas_jc$Bedtime.End <- as.POSIXct(data_no_nas_jc$Bedtime.End, format = "%Y-%m-%dT%H:%M:%S")
 
 # Umwandlung von `date` in die Anzahl der Tage seit einem festen Startdatum
-start_date <- as.Date("2020-01-01")
+start_date <- as.Date("2021-02-17")
 data_no_nas_jc$date_numeric <- as.numeric(data_no_nas_jc$date - start_date)
 
 # Optional: Extrahiere Wochentag oder Monat
@@ -133,38 +133,3 @@ print(cor_num)
 library(corrplot)
 corrplot(cor_num, method = "circle")
 
-# Entfernen aller Spalten mit "Schlaf" im Namen, außer "Sleep.Score", da das die ZG ist
-data_no_nas_jc_clean <- data_no_nas_jc %>%
-  select(-matches("Sleep"), Sleep.Score)
-
-# Konvertiere alle relevanten Variablen, die als character statt als numerisch gespeichert sind
-data_no_nas_jc_clean$Bedtime.Start <- as.numeric(as.POSIXct(data_no_nas_jc_clean$Bedtime.Start, format="%Y-%m-%dT%H:%M:%S"))
-data_no_nas_jc_clean$Bedtime.End <- as.numeric(as.POSIXct(data_no_nas_jc_clean$Bedtime.End, format="%Y-%m-%dT%H:%M:%S"))
-data_no_nas_jc_clean$Temperature.Deviation...C. <- as.numeric(data_no_nas_jc_clean$Temperature.Deviation...C.)
-data_no_nas_jc_clean$Temperature.Trend.Deviation <- as.numeric(data_no_nas_jc_clean$Temperature.Trend.Deviation)
-data_no_nas_jc_clean$Stay.Active.Score <- as.numeric(data_no_nas_jc_clean$Stay.Active.Score)
-data_no_nas_jc_clean$Move.Every.Hour.Score <- as.numeric(data_no_nas_jc_clean$Move.Every.Hour.Score)
-data_no_nas_jc_clean$Meet.Daily.Targets.Score <- as.numeric(data_no_nas_jc_clean$Meet.Daily.Targets.Score)
-data_no_nas_jc_clean$Training.Frequency.Score <- as.numeric(data_no_nas_jc_clean$Training.Frequency.Score)
-data_no_nas_jc_clean$Training.Volume.Score <- as.numeric(data_no_nas_jc_clean$Training.Volume.Score)
-data_no_nas_jc_clean$Previous.Day.Activity.Score <- as.numeric(data_no_nas_jc_clean$Previous.Day.Activity.Score)
-data_no_nas_jc_clean$Activity.Balance.Score <- as.numeric(data_no_nas_jc_clean$Activity.Balance.Score)
-data_no_nas_jc_clean$Temperature.Score <- as.numeric(data_no_nas_jc_clean$Temperature.Score)
-data_no_nas_jc_clean$Resting.Heart.Rate.Score <- as.numeric(data_no_nas_jc_clean$Resting.Heart.Rate.Score)
-data_no_nas_jc_clean$HRV.Balance.Score <- as.numeric(data_no_nas_jc_clean$HRV.Balance.Score)
-data_no_nas_jc_clean$Recovery.Index.Score <- as.numeric(data_no_nas_jc_clean$Recovery.Index.Score)
-
-# Überprüfen, ob die Umwandlung korrekt erfolgt ist
-summary(data_no_nas_jc_clean)
-
-
-
-# Führe die Korrelationsanalyse mit den numerischen Variablen durch
-numeric_columns_clean <- sapply(data_no_nas_jc_clean, is.numeric)
-cor_num_clean <- cor(data_no_nas_jc_clean[, numeric_columns_clean], use = "complete.obs")
-print(cor_num_clean)
-
-library(corrplot)
-corrplot(cor_num_clean, method = "circle")
-
-# interpretation: 
