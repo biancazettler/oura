@@ -25,6 +25,8 @@ data_no_nas_jc_clean$Resting.Heart.Rate.Score <- as.numeric(data_no_nas_jc_clean
 data_no_nas_jc_clean$HRV.Balance.Score <- as.numeric(data_no_nas_jc_clean$HRV.Balance.Score)
 data_no_nas_jc_clean$Recovery.Index.Score <- as.numeric(data_no_nas_jc_clean$Recovery.Index.Score)
 
+data_no_nas_jc_clean$date <- as.Date(data_no_nas_jc_clean$date)
+
 # wochenend effekt
 data_no_nas_jc_clean$is_weekend <- ifelse(weekdays(data_no_nas_jc_clean$date) %in% c("Samstag", "Sonntag"), 1, 0)
 
@@ -87,7 +89,7 @@ ausgewaehlte_variablen <- data_no_nas_jc_clean[, c("date_numeric",
                                                    "Temperature.Score", 
                                                    "Previous.Day.Activity.Score", 
                                                    "Meet.Daily.Targets.Score",
-                                                   "tavg", "Sleep.Score")]
+                                                   "tavg", "Sleep.Score", "tsun")]
 
 # Lineares Modell mit den ausgewählten Variablen für die VIF-Berechnung erstellen
 vif_modell <- lm(Sleep.Score ~ ., data = ausgewaehlte_variablen)
@@ -107,7 +109,7 @@ x <- as.matrix(data_no_nas_jc_clean[, c("date_numeric", "Resting.Heart.Rate.Scor
                                         "Respiratory.Rate", "HRV.Balance.Score", 
                                         "Recovery.Index.Score", "Temperature.Score", 
                                         "Previous.Day.Activity.Score", 
-                                        "Meet.Daily.Targets.Score", "tavg")])
+                                        "Meet.Daily.Targets.Score", "tavg", "tsun")])
 y <- data_no_nas_jc_clean$Sleep.Score
 
 # Fehlende Werte in x durch den Spaltenmittelwert ersetzen
@@ -133,19 +135,131 @@ plot(lasso_model)
 library(brms)
 model_linear <- brm(Sleep.Score ~ date_numeric + Resting.Heart.Rate.Score + Respiratory.Rate +
                       HRV.Balance.Score + Recovery.Index.Score + Temperature.Score + 
-                      Previous.Day.Activity.Score + Meet.Daily.Targets.Score + tavg, 
+                      Previous.Day.Activity.Score + Meet.Daily.Targets.Score + tavg + tsun, 
                     data = data_no_nas_jc_clean, family = gaussian())
 
 summary(model_linear)
 
 # interaktionsterme:
-# Schritt 1: Fitten eines Modells mit allen potenziellen Interaktionstermen
-full_model <- brm(Sleep.Score ~ date_numeric * Resting.Heart.Rate.Score * Respiratory.Rate 
-                  * tavg * HRV.Balance.Score * Recovery.Index.Score * Temperature.Score *
-                    Previous.Day.Activity.Score * Meet.Daily.Targets.Score, data = data_no_nas_jc_clean, family = gaussian())
+library(brms)
 
-# Schritt 2: Verwenden von `projpred` für die Variablenselektion
-install.packages("projpred")
-library(projpred)
-varsel_results <- cv_varsel(full_model, method = 'forward')  # forward selection für wichtige Prädiktoren
-summary(varsel_results)
+# Definiere die Formel mit allen Haupt- und möglichen Interaktionstermen
+formula <- bf(Sleep.Score ~ (date_numeric + Resting.Heart.Rate.Score + Respiratory.Rate +
+                               HRV.Balance.Score + Recovery.Index.Score + Temperature.Score +
+                               Previous.Day.Activity.Score + Meet.Daily.Targets.Score + tavg)^2)
+# durch ^2 werden alle möglichen Haupt- und Interaktionsterme bis zum zweiten Grad aufgenommen
+
+# Setze einen Horseshoe-Prior für die Koeffizienten für variablenselektion
+priors <- prior(horseshoe(scale_global = 1), class = "b")
+# Horseshoe-Prior: Ein sparsamer Prior, der dazu führt, dass unwichtige Koeffizienten gegen Null gehen
+
+# Fitte das Modell
+###### dauert zu lange #########
+# model_bayes <- brm(formula,
+#                    data = data_no_nas_jc_clean,
+#                    family = gaussian(),
+#                    prior = priors,
+#                    control = list(adapt_delta = 0.95), #control-Parameter: Anpassungen zur Verbesserung der Konvergenz des Modells
+#                    cores = 4)
+
+# Zusammenfassung des Modells
+summary(model_bayes) # keine ergebnisse
+
+library(brms)
+
+# Formel definieren, die nur die gewünschten Interaktionen enthält
+formula_in <- bf(Sleep.Score ~ 
+                (Resting.Heart.Rate.Score + Respiratory.Rate + HRV.Balance.Score + Recovery.Index.Score) * 
+                (Previous.Day.Activity.Score + Meet.Daily.Targets.Score) +
+                (tsun * tavg))
+
+# Definiere die Horseshoe-Regularisierung als Prior
+priors_in <- prior(horseshoe(scale_global = 1), class = "b")
+
+# Fitte das Modell mit den definierten Interaktionen
+model_bayes_in <- brm(
+  formula = formula_in,
+  data = data_no_nas_jc_clean,
+  family = gaussian(),
+  prior = priors_in,
+  control = list(adapt_delta = 0.99),
+  cores = 4
+)
+
+# Zusammenfassung des Modells anzeigen
+summary(model_bayes_in)
+
+# -> lineares modell mit keiner interaktion:
+formula <- bf(Sleep.Score ~ Resting.Heart.Rate.Score + Respiratory.Rate + 
+                HRV.Balance.Score + Recovery.Index.Score + 
+                Previous.Day.Activity.Score + Meet.Daily.Targets.Score + 
+                tavg + date_numeric + tsun) # moon_phase hat KI's um 0
+
+# Priors festlegen
+priors <- prior(normal(0, 1), class = "b") + 
+  prior(normal(0, 5), class = "Intercept")
+
+# Modell fitten
+model_bayes <- brm(
+  formula = formula,
+  data = data_no_nas_jc_clean,
+  family = gaussian(),
+  prior = priors,
+  control = list(adapt_delta = 0.95),
+  cores = 4
+)
+
+# Zusammenfassung des Modells anzeigen
+summary(model_bayes)
+
+# Berechnung der Residuen
+residuals <- as.vector(residuals(model_bayes))
+
+fitted_values <- fitted(model_bayes)
+
+fitted_values <- fitted(model_bayes)
+plot(fitted_values, residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# nur für stetige variabeln: 
+# Extrahiere die Residuen und bilde den Mittelwert über die Posterior-Samples
+residuals_samples <- residuals(model_bayes, summary = FALSE)  # Hole Residuen ohne Zusammenfassung
+residuals_mean <- apply(residuals_samples, 2, mean)           # Mittlere Residuen berechnen
+
+# Überprüfe die Länge, um sicherzustellen, dass sie der Anzahl der Beobachtungen entspricht
+length(residuals_mean) # Sollte 811 sein
+
+# Filtere die Daten auf die Zeilen ohne fehlende Werte für die Variablen, die im Modell verwendet wurden
+data_filtered <- data_no_nas_jc_clean[complete.cases(data_no_nas_jc_clean[c("Resting.Heart.Rate.Score", 
+                                                                            "Respiratory.Rate", 
+                                                                            "HRV.Balance.Score", 
+                                                                            "Recovery.Index.Score", 
+                                                                            "Previous.Day.Activity.Score", 
+                                                                            "Meet.Daily.Targets.Score", 
+                                                                            "tavg", 
+                                                                            "date_numeric")]), ]
+
+# Jetzt sollte die Länge von data_filtered$Respiratory.Rate mit residuals_mean übereinstimmen
+length(data_filtered$Respiratory.Rate) # Sollte 811 sein
+
+# Plot der Residuen vs. Respiratory Rate
+plot(data_filtered$Respiratory.Rate, residuals_mean,
+     main = "Residuals vs. Respiratory Rate",
+     xlab = "Respiratory Rate",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# Plot Residuals vs. Tavg
+plot(data_filtered$tavg, residuals_mean,
+     main = "Residuals vs. Tavg",
+     xlab = "Tavg",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# Plot Residuals vs. Tsun
+plot(data_filtered$tsun, residuals_mean,
+     main = "Residuals vs. Tsun",
+     xlab = "Tsun",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+

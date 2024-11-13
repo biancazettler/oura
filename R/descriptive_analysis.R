@@ -110,3 +110,22 @@ ggplot(data_imputed_jc, aes(x = Temperature.Deviation...C.)) +
 
 
 
+# Erstelle Scatterplots für die Zielvariable gegen jede kontinuierliche Kovariable
+library(ggplot2)
+ggplot(data_no_nas_jc_clean, aes(x = Respiratory.Rate, y = Sleep.Score)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Sleep.Score vs Respiratory Rate")
+# kein linearer zusammenhang -> eher kein lineares modell 
+
+ggplot(data_no_nas_jc_clean, aes(x = tavg, y = Sleep.Score)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Sleep.Score vs Tavg")
+
+ggplot(data_no_nas_jc_clean, aes(x = tsun, y = Sleep.Score)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Sleep.Score vs Tsun")
+
+ggplot(data_no_nas_jc_clean, aes(x = date, y = Sleep.Score)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Sleep.Score vs Date")
+
