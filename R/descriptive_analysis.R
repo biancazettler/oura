@@ -129,3 +129,45 @@ ggplot(data_no_nas_jc_clean, aes(x = date, y = Sleep.Score)) +
   geom_point() + geom_smooth(method = "loess", color = "blue") +
   labs(title = "Sleep.Score vs Date")
 
+
+### zv respiratory rate:
+ggplot(data_no_nas_jc_clean, aes(x = pres, y = Respiratory.Rate)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Respiratory Rate vs pres")
+# kein linearer zusammenhang -> eher kein lineares modell 
+
+ggplot(data_no_nas_jc_clean, aes(x = tavg, y = Respiratory.Rate)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Respiratory Rate vs Tavg")
+# überwiegend linearer zusammenhang -> eher lineares modell 
+
+ggplot(data_no_nas_jc_clean, aes(x = tsun, y = Respiratory.Rate)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Respiratory Rate vs Tsun")
+# kein linearer zusammenhang -> eher kein lineares modell 
+
+ggplot(data_no_nas_jc_clean, aes(x = date, y = Respiratory.Rate)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Respiratory Rate vs Date")
+# kein linearer zusammenhang -> eher kein lineares modell
+
+ggplot(data_no_nas_jc_clean, aes(x = Resting.Heart.Rate.Score, y = Respiratory.Rate)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Respiratory Rate vs Resting heart rate score")
+# kein linearer zusammenhang -> eher kein lineares modell 
+
+ggplot(data_no_nas_jc_clean, aes(x = HRV.Balance.Score, y = Respiratory.Rate)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Respiratory Rate vs hrv balance score")
+# kein linearer zusammenhang -> eher kein lineares modell 
+
+ggplot(data_no_nas_jc_clean, aes(x = Temperature.Score, y = Respiratory.Rate)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Respiratory Rate vs temperature score")
+# kein linearer zusammenhang -> eher kein lineares modell 
+
+ggplot(data_no_nas_jc_clean, aes(x = Recovery.Index.Score, y = Respiratory.Rate)) + 
+  geom_point() + geom_smooth(method = "loess", color = "blue") +
+  labs(title = "Respiratory Rate vs recovery index score")
+# kein linearer zusammenhang -> eher kein lineares modell
+

@@ -193,7 +193,7 @@ summary(model_bayes_in)
 formula <- bf(Sleep.Score ~ Resting.Heart.Rate.Score + Respiratory.Rate + 
                 HRV.Balance.Score + Recovery.Index.Score + 
                 Previous.Day.Activity.Score + Meet.Daily.Targets.Score + 
-                tavg + date_numeric + tsun) # moon_phase hat KI's um 0
+                tavg + date_numeric + tsun) # moon_phase hatKI um 0
 
 # Priors festlegen
 priors <- prior(normal(0, 1), class = "b") + 
