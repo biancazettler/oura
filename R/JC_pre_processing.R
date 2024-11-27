@@ -3,11 +3,15 @@
 # install packages 
 library(tidyverse)
 library(dplyr)
+library(rlang)
+library(tidyr)
 
 # get data 
 #getwd()
 data_jc <- read.csv("data/oura_2020-08-01_2024-10-13_trends.csv")
 head(data_jc)
+nrow(data_jc)
+ncol(data_jc)
 summary(data_jc)
 min(data_jc$date) # starting date: 2021-02-09
 max(data_jc$date) # end date: current date -> data of more than 3,5 years

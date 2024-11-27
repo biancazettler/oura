@@ -20,9 +20,6 @@ model_custom <- brm(
 # Modellzusammenfassung anzeigen
 summary(model_custom)
 
-# Laden des benötigten Pakets
-library(brms)
-
 # Modellformel mit den Transformationen
 model_formula <- bf(
   Respiratory.Rate ~ 

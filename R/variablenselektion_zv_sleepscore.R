@@ -5,67 +5,70 @@ source("R/JC_correlation_analysis.R")
 
 ### Korrelationen
 # Entfernen aller Spalten mit "Schlaf" im Namen, außer "Sleep.Score", da das die ZG ist
-data_no_nas_jc_clean <- data_no_nas_jc %>%
-  select(-matches("Sleep"), Sleep.Score)
+data_imputed_jc_clean <- data_imputed_jc %>% rename(schlaf = Sleep.Score)
+data_imputed_jc_clean <- data_imputed_jc_clean %>%
+  select(-matches("Sleep"))
+data_imputed_jc_clean <- data_imputed_jc_clean %>% rename(Sleep.Score = schlaf)
+
 
 # Konvertiere alle relevanten Variablen, die als character statt als numerisch gespeichert sind
-#data_no_nas_jc_clean$Bedtime.Start <- as.numeric(as.POSIXct(data_no_nas_jc_clean$Bedtime.Start, format="%Y-%m-%dT%H:%M:%S"))
-#data_no_nas_jc_clean$Bedtime.End <- as.numeric(as.POSIXct(data_no_nas_jc_clean$Bedtime.End, format="%Y-%m-%dT%H:%M:%S"))
-data_no_nas_jc_clean$Temperature.Deviation...C. <- as.numeric(data_no_nas_jc_clean$Temperature.Deviation...C.)
-data_no_nas_jc_clean$Temperature.Trend.Deviation <- as.numeric(data_no_nas_jc_clean$Temperature.Trend.Deviation)
-data_no_nas_jc_clean$Stay.Active.Score <- as.numeric(data_no_nas_jc_clean$Stay.Active.Score)
-data_no_nas_jc_clean$Move.Every.Hour.Score <- as.numeric(data_no_nas_jc_clean$Move.Every.Hour.Score)
-data_no_nas_jc_clean$Meet.Daily.Targets.Score <- as.numeric(data_no_nas_jc_clean$Meet.Daily.Targets.Score)
-data_no_nas_jc_clean$Training.Frequency.Score <- as.numeric(data_no_nas_jc_clean$Training.Frequency.Score)
-data_no_nas_jc_clean$Training.Volume.Score <- as.numeric(data_no_nas_jc_clean$Training.Volume.Score)
-data_no_nas_jc_clean$Previous.Day.Activity.Score <- as.numeric(data_no_nas_jc_clean$Previous.Day.Activity.Score)
-data_no_nas_jc_clean$Activity.Balance.Score <- as.numeric(data_no_nas_jc_clean$Activity.Balance.Score)
-data_no_nas_jc_clean$Temperature.Score <- as.numeric(data_no_nas_jc_clean$Temperature.Score)
-data_no_nas_jc_clean$Resting.Heart.Rate.Score <- as.numeric(data_no_nas_jc_clean$Resting.Heart.Rate.Score)
-data_no_nas_jc_clean$HRV.Balance.Score <- as.numeric(data_no_nas_jc_clean$HRV.Balance.Score)
-data_no_nas_jc_clean$Recovery.Index.Score <- as.numeric(data_no_nas_jc_clean$Recovery.Index.Score)
+#data_imputed_jc_clean$Bedtime.Start <- as.numeric(as.POSIXct(data_imputed_jc_clean$Bedtime.Start, format="%Y-%m-%dT%H:%M:%S"))
+#data_imputed_jc_clean$Bedtime.End <- as.numeric(as.POSIXct(data_imputed_jc_clean$Bedtime.End, format="%Y-%m-%dT%H:%M:%S"))
+data_imputed_jc_clean$Temperature.Deviation...C. <- as.numeric(data_imputed_jc_clean$Temperature.Deviation...C.)
+data_imputed_jc_clean$Temperature.Trend.Deviation <- as.numeric(data_imputed_jc_clean$Temperature.Trend.Deviation)
+data_imputed_jc_clean$Stay.Active.Score <- as.numeric(data_imputed_jc_clean$Stay.Active.Score)
+data_imputed_jc_clean$Move.Every.Hour.Score <- as.numeric(data_imputed_jc_clean$Move.Every.Hour.Score)
+data_imputed_jc_clean$Meet.Daily.Targets.Score <- as.numeric(data_imputed_jc_clean$Meet.Daily.Targets.Score)
+data_imputed_jc_clean$Training.Frequency.Score <- as.numeric(data_imputed_jc_clean$Training.Frequency.Score)
+data_imputed_jc_clean$Training.Volume.Score <- as.numeric(data_imputed_jc_clean$Training.Volume.Score)
+data_imputed_jc_clean$Previous.Day.Activity.Score <- as.numeric(data_imputed_jc_clean$Previous.Day.Activity.Score)
+data_imputed_jc_clean$Activity.Balance.Score <- as.numeric(data_imputed_jc_clean$Activity.Balance.Score)
+data_imputed_jc_clean$Temperature.Score <- as.numeric(data_imputed_jc_clean$Temperature.Score)
+data_imputed_jc_clean$Resting.Heart.Rate.Score <- as.numeric(data_imputed_jc_clean$Resting.Heart.Rate.Score)
+data_imputed_jc_clean$HRV.Balance.Score <- as.numeric(data_imputed_jc_clean$HRV.Balance.Score)
+data_imputed_jc_clean$Recovery.Index.Score <- as.numeric(data_imputed_jc_clean$Recovery.Index.Score)
 
-data_no_nas_jc_clean$date <- as.Date(data_no_nas_jc_clean$date)
+data_imputed_jc_clean$date <- as.Date(data_imputed_jc_clean$date)
 
 # wochenend effekt
-data_no_nas_jc_clean$is_weekend <- ifelse(weekdays(data_no_nas_jc_clean$date) %in% c("Samstag", "Sonntag"), 1, 0)
+data_imputed_jc_clean$is_weekend <- ifelse(weekdays(data_imputed_jc_clean$date) %in% c("Samstag", "Sonntag"), 1, 0)
 
 # externe Variable Mondphasen mit ins Modell:
 library(lunar)
 
 # Mondphasen für jedes Datum berechnen
-data_no_nas_jc_clean$moon_phase <- lunar.phase(data_no_nas_jc_clean$date, name = TRUE)
+data_imputed_jc_clean$moon_phase <- lunar.phase(data_imputed_jc_clean$date, name = TRUE)
 
 # Mondphasen als Faktor umwandeln, um sie im Modell zu verwenden
-data_no_nas_jc_clean$moon_phase <- factor(data_no_nas_jc_clean$moon_phase)
+data_imputed_jc_clean$moon_phase <- factor(data_imputed_jc_clean$moon_phase)
 
 # Umwandeln von moon_phase in eine numerische Variable
-data_no_nas_jc_clean$moon_phase_numeric <- as.numeric(factor(data_no_nas_jc_clean$moon_phase, 
+data_imputed_jc_clean$moon_phase_numeric <- as.numeric(factor(data_imputed_jc_clean$moon_phase, 
                                                              levels = c("New", "Waxing", "Full", "Waning")))
 # new = 1, waxing = 2, full = 3, waning = 4
 
 library("xlsx")
 # externe einflussgröße wetter für münchen:
 weather <- read.xlsx("data/weather.xlsx", sheetIndex = 1)
-head(data_no_nas_jc_clean)
-summary(data_no_nas_jc_clean)
+head(data_imputed_jc_clean)
+summary(data_imputed_jc_clean)
 
 weather$date <- as.Date(weather$date, format = "%Y-%m-%d")
 
 # Verbinde die Wetterdaten mit Daten
 library(dplyr)
-data_no_nas_jc_clean <- left_join(data_no_nas_jc_clean, weather, by = "date")
+data_imputed_jc_clean <- left_join(data_imputed_jc_clean, weather, by = "date")
 
-head(data_no_nas_jc_clean)
+head(data_imputed_jc_clean)
 
 # Überprüfen, ob die Umwandlung korrekt erfolgt ist
-summary(data_no_nas_jc_clean)
+summary(data_imputed_jc_clean)
 
 
 
 # Führe die Korrelationsanalyse mit den numerischen Variablen durch
-numeric_columns_clean <- sapply(data_no_nas_jc_clean, is.numeric)
-cor_num_clean <- cor(data_no_nas_jc_clean[, numeric_columns_clean], use = "complete.obs")
+numeric_columns_clean <- sapply(data_imputed_jc_clean, is.numeric)
+cor_num_clean <- cor(data_imputed_jc_clean[, numeric_columns_clean], use = "complete.obs")
 print(# Zeigt nur die Spalte "Sleep.Score" mit allen Zeilennamen
   cor_num_clean[, "Sleep.Score", drop = FALSE]
 )
@@ -81,7 +84,7 @@ corrplot(cor_num_clean, method = "circle")
 library(car)
 
 # Auswahl der spezifischen Spalten für die Multikollinearitätsanalyse
-ausgewaehlte_variablen <- data_no_nas_jc_clean[, c("date_numeric", 
+ausgewaehlte_variablen <- data_imputed_jc_clean[, c("date_numeric", 
                                                    "Resting.Heart.Rate.Score", 
                                                    "Respiratory.Rate", 
                                                    "HRV.Balance.Score", 
@@ -104,13 +107,13 @@ print(vif_werte)
 library(glmnet)
 
 # Daten vorbereiten: Prädiktoren und Zielvariable
-# Angenommen, data_no_nas_jc_clean ist unser Dataframe und Sleep.Score ist die Zielvariable
-x <- as.matrix(data_no_nas_jc_clean[, c("date_numeric", "Resting.Heart.Rate.Score", 
+# Angenommen, data_imputed_jc_clean ist unser Dataframe und Sleep.Score ist die Zielvariable
+x <- as.matrix(data_imputed_jc_clean[, c("date_numeric", "Resting.Heart.Rate.Score", 
                                         "Respiratory.Rate", "HRV.Balance.Score", 
                                         "Recovery.Index.Score", "Temperature.Score", 
                                         "Previous.Day.Activity.Score", 
                                         "Meet.Daily.Targets.Score", "tavg", "tsun")])
-y <- data_no_nas_jc_clean$Sleep.Score
+y <- data_imputed_jc_clean$Sleep.Score
 
 # Fehlende Werte in x durch den Spaltenmittelwert ersetzen
 x[is.na(x)] <- colMeans(x, na.rm = TRUE)[col(x)[is.na(x)]]
@@ -136,7 +139,7 @@ library(brms)
 model_linear <- brm(Sleep.Score ~ date_numeric + Resting.Heart.Rate.Score + Respiratory.Rate +
                       HRV.Balance.Score + Recovery.Index.Score + Temperature.Score + 
                       Previous.Day.Activity.Score + Meet.Daily.Targets.Score + tavg + tsun, 
-                    data = data_no_nas_jc_clean, family = gaussian())
+                    data = data_imputed_jc_clean, family = gaussian())
 
 summary(model_linear)
 
@@ -156,7 +159,7 @@ priors <- prior(horseshoe(scale_global = 1), class = "b")
 # Fitte das Modell
 ###### dauert zu lange #########
 # model_bayes <- brm(formula,
-#                    data = data_no_nas_jc_clean,
+#                    data = data_imputed_jc_clean,
 #                    family = gaussian(),
 #                    prior = priors,
 #                    control = list(adapt_delta = 0.95), #control-Parameter: Anpassungen zur Verbesserung der Konvergenz des Modells
@@ -179,7 +182,7 @@ priors_in <- prior(horseshoe(scale_global = 1), class = "b")
 # Fitte das Modell mit den definierten Interaktionen
 model_bayes_in <- brm(
   formula = formula_in,
-  data = data_no_nas_jc_clean,
+  data = data_imputed_jc_clean,
   family = gaussian(),
   prior = priors_in,
   control = list(adapt_delta = 0.99),
@@ -202,7 +205,7 @@ priors <- prior(normal(0, 1), class = "b") +
 # Modell fitten
 model_bayes <- brm(
   formula = formula,
-  data = data_no_nas_jc_clean,
+  data = data_imputed_jc_clean,
   family = gaussian(),
   prior = priors,
   control = list(adapt_delta = 0.95),
@@ -230,13 +233,13 @@ residuals_mean <- apply(residuals_samples, 2, mean)           # Mittlere Residue
 length(residuals_mean) # Sollte 811 sein
 
 # Filtere die Daten auf die Zeilen ohne fehlende Werte für die Variablen, die im Modell verwendet wurden
-data_filtered <- data_no_nas_jc_clean[complete.cases(data_no_nas_jc_clean[c("Resting.Heart.Rate.Score", 
+data_filtered <- data_imputed_jc_clean[complete.cases(data_imputed_jc_clean[c("Resting.Heart.Rate.Score", 
                                                                             "Respiratory.Rate", 
                                                                             "HRV.Balance.Score", 
                                                                             "Recovery.Index.Score", 
                                                                             "Previous.Day.Activity.Score", 
                                                                             "Meet.Daily.Targets.Score", 
-                                                                            "tavg", 
+                                                                            "tavg", "tsun",
                                                                             "date_numeric")]), ]
 
 # Jetzt sollte die Länge von data_filtered$Respiratory.Rate mit residuals_mean übereinstimmen
@@ -263,3 +266,44 @@ plot(data_filtered$tsun, residuals_mean,
      ylab = "Residuals")
 abline(h = 0, col = "red", lty = 2)
 
+# Plot Residuals vs. Resting.Heart.Rate.Score
+plot(data_filtered$Resting.Heart.Rate.Score, residuals_mean,
+     main = "Residuals vs. Resting.Heart.Rate.Score",
+     xlab = "Resting.Heart.Rate.Score",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# Plot Residuals vs. HRV.Balance.Score
+plot(data_filtered$HRV.Balance.Score, residuals_mean,
+     main = "Residuals vs. HRV.Balance.Score",
+     xlab = "HRV.Balance.Score",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# Plot Residuals vs. Recovery.Index.Score
+plot(data_filtered$Recovery.Index.Score, residuals_mean,
+     main = "Residuals vs. Recovery.Index.Score",
+     xlab = "Recovery.Index.Score",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# Plot Residuals vs. Previous.Day.Activity.Score
+plot(data_filtered$Previous.Day.Activity.Score, residuals_mean,
+     main = "Residuals vs. Previous.Day.Activity.Score",
+     xlab = "Previous.Day.Activity.Score",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# Plot Residuals vs. Meet.Daily.Targets.Score
+plot(data_filtered$Meet.Daily.Targets.Score, residuals_mean,
+     main = "Residuals vs. Meet.Daily.Targets.Score",
+     xlab = "Meet.Daily.Targets.Score",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# Plot Residuals vs. date_numeric
+plot(data_filtered$date_numeric, residuals_mean,
+     main = "Residuals vs. date_numeric",
+     xlab = "date_numeric",
+     ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)

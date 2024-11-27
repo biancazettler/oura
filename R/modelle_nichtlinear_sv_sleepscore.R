@@ -10,10 +10,10 @@ formula_poly <- bf(Sleep.Score ~ Resting.Heart.Rate.Score + poly(Respiratory.Rat
 
 # Bayesianisches Modell fitten
 model_poly <- brm(formula_poly,
-                  data = data_no_nas_jc_clean,
+                  data = data_imputed_jc_clean,
                   family = gaussian(),
                   prior = priors,  # Setze deine bevorzugten Priors hier ein
-                  control = list(adapt_delta = 0.99),
+                  control = list(adapt_delta = 0.95),
                   cores = 4)
 summary(model_poly)
 
@@ -25,10 +25,10 @@ formula_spline <- bf(Sleep.Score ~ Resting.Heart.Rate.Score + s(Respiratory.Rate
 
 # Bayesianisches Modell fitten
 model_spline <- brm(formula_spline,
-                    data = data_no_nas_jc_clean,
+                    data = data_imputed_jc_clean,
                     family = gaussian(),
                     prior = priors,  # Setze deine bevorzugten Priors hier ein
-                    control = list(adapt_delta = 0.99),
+                    control = list(adapt_delta = 0.95),
                     cores = 4)
 summary(model_spline)
 
@@ -41,7 +41,7 @@ model_quad_tavg <- brm(
   formula = Sleep.Score ~ Resting.Heart.Rate.Score + Respiratory.Rate + 
     HRV.Balance.Score + Recovery.Index.Score + Previous.Day.Activity.Score + 
     Meet.Daily.Targets.Score + date_numeric + tavg + I(tavg^2),
-  data = data_no_nas_jc_clean,
+  data = data_imputed_jc_clean,
   family = gaussian(),
   prior = priors,  # Falls du spezielle Priors gesetzt hast
   control = list(adapt_delta = 0.99),  # Anpassungen für die Konvergenz
@@ -56,7 +56,7 @@ model_quad_spline <- brm(
   formula = Sleep.Score ~ Resting.Heart.Rate.Score + s(Respiratory.Rate, k = 5) + 
     HRV.Balance.Score + Recovery.Index.Score + Previous.Day.Activity.Score + 
     Meet.Daily.Targets.Score + date_numeric + tavg + I(tavg^2),
-  data = data_no_nas_jc_clean,
+  data = data_imputed_jc_clean,
   family = gaussian(),
   prior = priors, # ggf. definierte Priors
   control = list(adapt_delta = 0.99),
@@ -71,7 +71,7 @@ model_tsun_quad <- brm(
   formula = Sleep.Score ~ Resting.Heart.Rate.Score + Respiratory.Rate + HRV.Balance.Score +
     Recovery.Index.Score + Previous.Day.Activity.Score + Meet.Daily.Targets.Score +
     date_numeric + tavg + I(tavg^2) + I(tsun^2),
-  data = data_no_nas_jc_clean,
+  data = data_imputed_jc_clean,
   family = gaussian(),
   prior = priors,
   control = list(adapt_delta = 0.95),
@@ -85,7 +85,7 @@ model_tsun_tavg_resp <- brm(
   formula = Sleep.Score ~ Resting.Heart.Rate.Score + s(Respiratory.Rate, k = 5) +
     HRV.Balance.Score + Recovery.Index.Score + Previous.Day.Activity.Score +
     Meet.Daily.Targets.Score + date_numeric + tavg + I(tavg^2) + I(tsun^2),
-  data = data_no_nas_jc_clean,
+  data = data_imputed_jc_clean,
   family = gaussian(),
   prior = priors,
   control = list(adapt_delta = 0.95),
@@ -106,7 +106,7 @@ model_date_quad <- brm(
     tsun + 
     date_numeric + 
     I(date_numeric^2),  # Quadratischer Term für Datum
-  data = data_no_nas_jc_clean,
+  data = data_imputed_jc_clean,
   family = gaussian(),
   control = list(adapt_delta = 0.99),
   cores = 4
@@ -125,7 +125,7 @@ model_date_spline <- brm(
     tavg + 
     tsun + 
     s(date_numeric, k = 5),  # Spline für Datum
-  data = data_no_nas_jc_clean,
+  data = data_imputed_jc_clean,
   family = gaussian(),
   control = list(adapt_delta = 0.99),
   cores = 4
