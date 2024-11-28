@@ -242,8 +242,6 @@ data_filtered <- data_imputed_jc_clean[complete.cases(data_imputed_jc_clean[c("R
                                                                             "tavg", "tsun",
                                                                             "date_numeric")]), ]
 
-# Jetzt sollte die Länge von data_filtered$Respiratory.Rate mit residuals_mean übereinstimmen
-length(data_filtered$Respiratory.Rate) # Sollte 811 sein
 
 # Plot der Residuen vs. Respiratory Rate
 plot(data_filtered$Respiratory.Rate, residuals_mean,
