@@ -106,7 +106,7 @@ data_imputed_jc$Bedtime.Start <- as.POSIXct(data_imputed_jc$Bedtime.Start, forma
 data_imputed_jc$Bedtime.End <- as.POSIXct(data_imputed_jc$Bedtime.End, format = "%Y-%m-%dT%H:%M:%S")
 
 # Umwandlung von `date` in die Anzahl der Tage seit einem festen Startdatum
-start_date <- as.Date("2021-02-17")
+start_date <- as.Date("2021-02-09")
 data_imputed_jc$date_numeric <- as.numeric(data_imputed_jc$date - start_date)
 
 # Optional: Extrahiere Wochentag oder Monat
@@ -136,7 +136,74 @@ str(data_imputed_jc)
 numeric_columns <- sapply(data_imputed_jc, is.numeric)
 cor_num <- cor(data_imputed_jc[, numeric_columns], use = "complete.obs")
 print(cor_num)
+print(# Zeigt nur die Spalte "Sleep.Score" mit allen Zeilennamen
+  cor_num[, "Sleep.Score", drop = FALSE]
+)
 
 library(corrplot)
 corrplot(cor_num, method = "circle")
 
+# Plot der wichtigsten Korrelationen:
+
+# Korrelationen berechnen
+correlations <- data_imputed_jc_clean %>%
+  select(Sleep.Score, Resting.Heart.Rate.Score, Respiratory.Rate,
+         HRV.Balance.Score, Recovery.Index.Score, Previous.Day.Activity.Score,
+         Meet.Daily.Targets.Score, tavg, tsun, date_numeric, Temperature.Score) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  as.data.frame() %>%
+  select(Sleep.Score) %>%
+  rownames_to_column(var = "Variable") %>%
+  filter(Variable != "Sleep.Score") %>%
+  rename(Correlation = Sleep.Score) %>%
+  arrange(desc(abs(Correlation)))
+
+# Zuordnung der deutschen Namen
+variable_labels <- c(
+  "Resting.Heart.Rate.Score" = "Ruheherzfrequenz",
+  "Respiratory.Rate" = "Atemfrequenz",
+  "HRV.Balance.Score" = "Herzfrequenzvariabilität",
+  "Recovery.Index.Score" = "Erholungsindex",
+  "Previous.Day.Activity.Score" = "Vortagsaktivität",
+  "Meet.Daily.Targets.Score" = "Aktivität",
+  "tavg" = "Durchschnittstemperatur",
+  "tsun" = "Sonnenscheindauer",
+  "date_numeric" = "Datum",
+  "Temperature.Score" = "Körpertemperatur"
+)
+
+# Variablen-Namen ersetzen
+correlations$Variable <- factor(correlations$Variable, levels = names(variable_labels), labels = variable_labels)
+
+# Plot erstellen
+correlation_plot <- ggplot(correlations, aes(x = reorder(Variable, Correlation), y = Correlation)) +
+  geom_bar(stat = "identity", aes(fill = Correlation), width = 0.8) +
+  coord_flip() +
+  scale_fill_gradient2(low = "darkblue", mid = "white", high = "darkorange", midpoint = 0) +
+  scale_y_continuous(breaks = seq(-0.5, 0.5, 0.1), limits = c(-0.5, 0.5)) +
+  theme_minimal() +
+  labs(
+    title = "Korrelationen mit dem Schlafwert",
+    x = "Variablen",
+    y = "Korrelationskoeffizient mit dem Schlafwert",
+    fill = "Korrelation"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    legend.position = "right"
+  )
+
+# Plot anzeigen
+print(correlation_plot)
+
+# Speichere den Plot als PNG
+png("correlation_plot.png", width = 1200, height = 800, res = 150)
+print(correlation_plot) # Ersetzt 'correlation_plot' durch den Namen deines Plots
+dev.off()
+
+# Speichere den Plot als PDF
+pdf("correlation_plot.pdf", width = 10, height = 7)  # Breite und Höhe des Plots
+print(correlation_plot)  # Ersetze 'correlation_plot' durch den Namen deines Plots
+dev.off()  # Schließt die Datei und speichert das PDF
