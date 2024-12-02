@@ -65,16 +65,22 @@ head(data_imputed_jc_clean)
 summary(data_imputed_jc_clean)
 
 
+# Installiere und lade notwendige Pakete
+if (!require("corrplot")) install.packages("corrplot", dependencies = TRUE)
+library(corrplot)
 
 # Führe die Korrelationsanalyse mit den numerischen Variablen durch
 numeric_columns_clean <- sapply(data_imputed_jc_clean, is.numeric)
 cor_num_clean <- cor(data_imputed_jc_clean[, numeric_columns_clean], use = "complete.obs")
-print(# Zeigt nur die Spalte "Sleep.Score" mit allen Zeilennamen
-  cor_num_clean[, "Sleep.Score", drop = FALSE]
-)
 
-library(corrplot)
-corrplot(cor_num_clean, method = "circle")
+# Ausgabe der Korrelationswerte für Sleep.Score
+print(cor_num_clean[, "Sleep.Score", drop = FALSE])
+
+# Speichere den Korrelationsplot als PDF
+pdf("correlation_plot_all.pdf", width = 12, height = 12)  # Breite und Höhe anpassen für bessere Lesbarkeit
+corrplot(cor_num_clean, method = "circle", tl.cex = 0.8, tl.col = "black")  # tl.cex steuert die Schriftgröße der Labels
+dev.off()
+
 
 # interpretation: siehe notizen
 
@@ -195,12 +201,14 @@ summary(model_bayes_in)
 # -> lineares modell mit keiner interaktion:
 formula <- bf(Sleep.Score ~ Resting.Heart.Rate.Score + Respiratory.Rate + 
                 HRV.Balance.Score + Recovery.Index.Score + 
-                Previous.Day.Activity.Score + Meet.Daily.Targets.Score + 
-                tavg + date_numeric + tsun) # moon_phase hatKI um 0
+                Previous.Day.Activity.Score + 
+                tavg + date_numeric + tsun + Temperature.Score) # moon_phase hatKI um 0
 
 # Priors festlegen
 priors <- prior(normal(0, 1), class = "b") + 
   prior(normal(0, 5), class = "Intercept")
+
+set.seed(12345)  # Festlegen des Seeds vor dem Modelllauf
 
 # Modell fitten
 model_bayes <- brm(
@@ -214,94 +222,3 @@ model_bayes <- brm(
 
 # Zusammenfassung des Modells anzeigen
 summary(model_bayes)
-
-# Berechnung der Residuen
-residuals <- as.vector(residuals(model_bayes))
-
-fitted_values <- fitted(model_bayes)
-
-fitted_values <- fitted(model_bayes)
-plot(fitted_values, residuals, main = "Residuals vs. Fitted Values", xlab = "Fitted Values", ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# nur für stetige variabeln: 
-# Extrahiere die Residuen und bilde den Mittelwert über die Posterior-Samples
-residuals_samples <- residuals(model_bayes, summary = FALSE)  # Hole Residuen ohne Zusammenfassung
-residuals_mean <- apply(residuals_samples, 2, mean)           # Mittlere Residuen berechnen
-
-# Überprüfe die Länge, um sicherzustellen, dass sie der Anzahl der Beobachtungen entspricht
-length(residuals_mean) # Sollte 811 sein
-
-# Filtere die Daten auf die Zeilen ohne fehlende Werte für die Variablen, die im Modell verwendet wurden
-data_filtered <- data_imputed_jc_clean[complete.cases(data_imputed_jc_clean[c("Resting.Heart.Rate.Score", 
-                                                                            "Respiratory.Rate", 
-                                                                            "HRV.Balance.Score", 
-                                                                            "Recovery.Index.Score", 
-                                                                            "Previous.Day.Activity.Score", 
-                                                                            "Meet.Daily.Targets.Score", 
-                                                                            "tavg", "tsun",
-                                                                            "date_numeric")]), ]
-
-
-# Plot der Residuen vs. Respiratory Rate
-plot(data_filtered$Respiratory.Rate, residuals_mean,
-     main = "Residuals vs. Respiratory Rate",
-     xlab = "Respiratory Rate",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Plot Residuals vs. Tavg
-plot(data_filtered$tavg, residuals_mean,
-     main = "Residuals vs. Tavg",
-     xlab = "Tavg",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Plot Residuals vs. Tsun
-plot(data_filtered$tsun, residuals_mean,
-     main = "Residuals vs. Tsun",
-     xlab = "Tsun",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Plot Residuals vs. Resting.Heart.Rate.Score
-plot(data_filtered$Resting.Heart.Rate.Score, residuals_mean,
-     main = "Residuals vs. Resting.Heart.Rate.Score",
-     xlab = "Resting.Heart.Rate.Score",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Plot Residuals vs. HRV.Balance.Score
-plot(data_filtered$HRV.Balance.Score, residuals_mean,
-     main = "Residuals vs. HRV.Balance.Score",
-     xlab = "HRV.Balance.Score",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Plot Residuals vs. Recovery.Index.Score
-plot(data_filtered$Recovery.Index.Score, residuals_mean,
-     main = "Residuals vs. Recovery.Index.Score",
-     xlab = "Recovery.Index.Score",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Plot Residuals vs. Previous.Day.Activity.Score
-plot(data_filtered$Previous.Day.Activity.Score, residuals_mean,
-     main = "Residuals vs. Previous.Day.Activity.Score",
-     xlab = "Previous.Day.Activity.Score",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Plot Residuals vs. Meet.Daily.Targets.Score
-plot(data_filtered$Meet.Daily.Targets.Score, residuals_mean,
-     main = "Residuals vs. Meet.Daily.Targets.Score",
-     xlab = "Meet.Daily.Targets.Score",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)
-
-# Plot Residuals vs. date_numeric
-plot(data_filtered$date_numeric, residuals_mean,
-     main = "Residuals vs. date_numeric",
-     xlab = "date_numeric",
-     ylab = "Residuals")
-abline(h = 0, col = "red", lty = 2)

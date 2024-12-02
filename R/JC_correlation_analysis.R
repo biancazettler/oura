@@ -149,7 +149,7 @@ corrplot(cor_num, method = "circle")
 correlations <- data_imputed_jc_clean %>%
   select(Sleep.Score, Resting.Heart.Rate.Score, Respiratory.Rate,
          HRV.Balance.Score, Recovery.Index.Score, Previous.Day.Activity.Score,
-         Meet.Daily.Targets.Score, tavg, tsun, date_numeric, Temperature.Score) %>%
+        tavg, tsun, date_numeric, Temperature.Score) %>%
   cor(use = "pairwise.complete.obs") %>%
   as.data.frame() %>%
   select(Sleep.Score) %>%
@@ -160,16 +160,15 @@ correlations <- data_imputed_jc_clean %>%
 
 # Zuordnung der deutschen Namen
 variable_labels <- c(
-  "Resting.Heart.Rate.Score" = "Ruheherzfrequenz",
+  "Resting.Heart.Rate.Score" = "Ruheherzfrequenzindex",
   "Respiratory.Rate" = "Atemfrequenz",
-  "HRV.Balance.Score" = "Herzfrequenzvariabilität",
+  "HRV.Balance.Score" = "Herzfrequenzvariabilitätsindex",
   "Recovery.Index.Score" = "Erholungsindex",
-  "Previous.Day.Activity.Score" = "Vortagsaktivität",
-  "Meet.Daily.Targets.Score" = "Aktivität",
+  "Previous.Day.Activity.Score" = "Vortagsaktivitätsindex",
   "tavg" = "Durchschnittstemperatur",
   "tsun" = "Sonnenscheindauer",
   "date_numeric" = "Datum",
-  "Temperature.Score" = "Körpertemperatur"
+  "Temperature.Score" = "Körpertemperaturindex"
 )
 
 # Variablen-Namen ersetzen
@@ -206,4 +205,67 @@ dev.off()
 # Speichere den Plot als PDF
 pdf("correlation_plot.pdf", width = 10, height = 7)  # Breite und Höhe des Plots
 print(correlation_plot)  # Ersetze 'correlation_plot' durch den Namen deines Plots
+dev.off()  # Schließt die Datei und speichert das PDF
+
+# Plot der wichtigsten Korrelationen für zv atemfrequenz:
+
+# Korrelationen berechnen
+correlations_resp <- data_imputed_jc_clean %>%
+  select(Temperature.Score, Resting.Heart.Rate.Score, Respiratory.Rate,
+         HRV.Balance.Score, Recovery.Index.Score, pres,
+         tavg, tsun, date_numeric) %>%
+  cor(use = "pairwise.complete.obs") %>%
+  as.data.frame() %>%
+  select(Respiratory.Rate) %>%
+  rownames_to_column(var = "Variable") %>%
+  filter(Variable != "Respiratory.Rate") %>%
+  rename(Correlation = Respiratory.Rate) %>%
+  arrange(desc(abs(Correlation)))
+
+# Zuordnung der deutschen Namen
+variable_labels_resp <- c(
+  "Resting.Heart.Rate.Score" = "Ruheherzfrequenzindex",
+  "HRV.Balance.Score" = "Herzfrequenzvariabilitätsindex",
+  "Recovery.Index.Score" = "Erholungsindex",
+  "pres" = "Luftdruck",
+  "tavg" = "Durchschnittstemperatur",
+  "tsun" = "Sonnenscheindauer",
+  "date_numeric" = "Datum",
+  "Temperature.Score" = "Körpertemperaturindex"
+)
+
+# Variablen-Namen ersetzen
+correlations_resp$Variable <- factor(correlations_resp$Variable, levels = names(variable_labels_resp), labels = variable_labels_resp)
+
+# Plot erstellen
+correlation_plot_resp <- ggplot(correlations_resp, aes(x = reorder(Variable, Correlation), y = Correlation)) +
+  geom_bar(stat = "identity", aes(fill = Correlation), width = 0.8) +
+  coord_flip() +
+  scale_fill_gradient2(low = "darkblue", mid = "white", high = "darkorange", midpoint = 0) +
+  scale_y_continuous(breaks = seq(-0.5, 0.5, 0.1), limits = c(-0.5, 0.5)) +
+  theme_minimal() +
+  labs(
+    title = "Korrelationen mit der Atemfrequenz",
+    x = "Variablen",
+    y = "Korrelationskoeffizient mit der Atemfrequenz",
+    fill = "Korrelation"
+  ) +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 16),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    legend.position = "right"
+  )
+
+# Plot anzeigen
+print(correlation_plot_resp)
+
+# Speichere den Plot als PNG
+png("correlation_plot_resp.png", width = 1200, height = 800, res = 150)
+print(correlation_plot_resp) # Ersetzt 'correlation_plot' durch den Namen deines Plots
+dev.off()
+
+# Speichere den Plot als PDF
+pdf("correlation_plot_resp.pdf", width = 10, height = 7)  # Breite und Höhe des Plots
+print(correlation_plot_resp)  # Ersetze 'correlation_plot' durch den Namen deines Plots
 dev.off()  # Schließt die Datei und speichert das PDF

@@ -88,23 +88,23 @@ dev.off()
 
 # Deutsche Namen für die Variablen (inklusive "Datum")
 german_names <- c(
-  "Aktivität", 
   "Atemfrequenz", 
   "Datum", 
   "Durchschnittstemperatur", 
   "Erholungsindex", 
-  "Herzfrequenzvariabilität", 
-  "Körpertemperatur", 
-  "Ruheherzfrequenz", 
+  "Herzfrequenzvariabilitätsindex", 
+  "Körpertemperaturindex", 
+  "Ruheherzfrequenzindex", 
   "Sonnenscheindauer", 
-  "Vortagsaktivität" 
+  "Vortagsaktivitätsindex",
+  "Luftdruck"
 )
 
 # Wähle die relevanten Variablen aus (plus "Sleep.Score")
 selected_vars <- data_imputed_jc_clean %>%
-  select(Sleep.Score, Meet.Daily.Targets.Score, Respiratory.Rate, date_numeric, tavg, 
+  select(Sleep.Score, Respiratory.Rate, date_numeric, tavg, 
          Recovery.Index.Score, HRV.Balance.Score, Temperature.Score, Resting.Heart.Rate.Score, 
-         tsun, Previous.Day.Activity.Score)
+         tsun, Previous.Day.Activity.Score, pres)
 
 # Umwandeln ins lange Format
 data_long <- selected_vars %>%
@@ -127,14 +127,14 @@ final_plot <- ggplot(data_long, aes(x = Value, y = Sleep.Score)) +
   ) +
   theme_minimal() +
   theme(
-    plot.title = element_text(hjust = 0.5, size = 16),
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12),
-    strip.text = element_text(size = 11)
+    plot.title = element_text(hjust = 0.5, size = 18),
+    axis.text = element_text(size = 12),
+    axis.title = element_text(size = 14),
+    strip.text = element_text(size = 13)
   )
 
 # Speichern als PDF
-pdf("Zusammenhang_Schlafwert_Einflussgrößen_3_3_3_1.pdf", width = 14, height = 16)
+pdf("Zusammenhang_Schlafwert_Einflussgrößen.pdf", width = 14, height = 16)
 print(final_plot)
 dev.off()
 
@@ -163,13 +163,19 @@ ggplot(data_imputed_jc_clean, aes(x = Sleep.Score)) +
 dev.off()
 
 
+# Speichern des Boxplots als PDF
+pdf("boxplot_sleep_score.pdf", width = 8, height = 6) # Breite und Höhe für gute Lesbarkeit
 ggplot(data_imputed_jc_clean, aes(y = Sleep.Score)) +
   geom_boxplot(fill = "lightblue", color = "black") +
   labs(title = "Boxplot des Schlafwerts (Sleep Score)",
        y = "Sleep Score") +
   theme_minimal()
+dev.off()
+
 
 library(ggplot2)
+# Speichern des Q-Q-Plots als PDF
+pdf("qqplot_sleep_score.pdf", width = 8, height = 6)  # Breite und Höhe für gute Lesbarkeit
 ggplot(data_imputed_jc_clean, aes(sample = Sleep.Score)) +
   stat_qq(color = "blue") +
   stat_qq_line(color = "red") +
@@ -177,4 +183,6 @@ ggplot(data_imputed_jc_clean, aes(sample = Sleep.Score)) +
        x = "Theoretische Quantile",
        y = "Beobachtete Quantile") +
   theme_minimal()
+dev.off()
+
 

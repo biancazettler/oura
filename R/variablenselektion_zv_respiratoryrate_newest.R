@@ -236,12 +236,13 @@ summary(model_selected_interactions)
 # Definiere die Formel für das Modell ohne Interaktionen
 formula <- Respiratory.Rate ~ Resting.Heart.Rate.Score + HRV.Balance.Score + 
   Temperature.Score + Recovery.Index.Score + date_numeric + tsun + tavg + 
-  pres + Meet.Daily.Targets.Score
+  pres 
 
 # Definiere die Priors, falls du spezifische Priors setzen möchtest
 priors <- prior(normal(0, 1), class = "b") + 
   prior(normal(0, 5), class = "Intercept")
 
+set.seed(12345)  # Festlegen des Seeds vor dem Modelllauf
 # Fit das bayesianische lineare Modell
 model_bayes_res <- brm(
   formula = formula,

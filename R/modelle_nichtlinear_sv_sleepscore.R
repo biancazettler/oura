@@ -1,13 +1,18 @@
-source("R/variablenselektion_zv_sleepscore")
+source("R/variablenselektion_zv_sleepscore.R")
 
 # nicht lineare modelle: zv sleep score
+
+# Priors festlegen
+priors <- prior(normal(0, 1), class = "b") + 
+  prior(normal(0, 5), class = "Intercept")
 
 # Modell mit einem quadratischen Term für Respiratory Rate
 formula_poly <- bf(Sleep.Score ~ Resting.Heart.Rate.Score + poly(Respiratory.Rate, 2) +
                      HRV.Balance.Score + Recovery.Index.Score +
-                     Previous.Day.Activity.Score + Meet.Daily.Targets.Score + 
-                     tavg + date_numeric)
+                     Previous.Day.Activity.Score + 
+                     tavg + date_numeric + tsun + Temperature.Score)
 
+set.seed(12345)  # Festlegen des Seeds vor dem Modelllauf
 # Bayesianisches Modell fitten
 model_poly <- brm(formula_poly,
                   data = data_imputed_jc_clean,
@@ -17,12 +22,17 @@ model_poly <- brm(formula_poly,
                   cores = 4)
 summary(model_poly)
 
+# Priors festlegen
+priors <- prior(normal(0, 1), class = "b") + 
+  prior(normal(0, 5), class = "Intercept")
+
 # Modell mit einem Spline-Term für Respiratory Rate
 formula_spline <- bf(Sleep.Score ~ Resting.Heart.Rate.Score + s(Respiratory.Rate, k = 5) +
                        HRV.Balance.Score + Recovery.Index.Score +
-                       Previous.Day.Activity.Score + Meet.Daily.Targets.Score + 
-                       tavg + date_numeric)
+                       Previous.Day.Activity.Score  + 
+                       tavg + date_numeric + tsun + Temperature.Score)
 
+set.seed(12345)  # Festlegen des Seeds vor dem Modelllauf
 # Bayesianisches Modell fitten
 model_spline <- brm(formula_spline,
                     data = data_imputed_jc_clean,
