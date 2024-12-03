@@ -1,7 +1,7 @@
-# Analyse der Einflussfaktoren auf Schlafqualität – Bachelorarbeit
+# Bayesianische Analyse der Einflussfaktoren auf die Schlafqualität: Eine Fallstudie basierend auf Smart-Ring-Daten – Bachelorarbeit
 
 ## Projektübersicht
-Dieses Repository enthält den Code und die Daten zur Analyse der Einflussfaktoren auf die Schlafqualität, basierend auf der Bachelorarbeit **"Bayesianische Analyse der Einflussfaktoren auf die Schlafqualität: Eine Fallstudie basierend auf Oura-Ring-Daten"**. Das Ziel dieser Arbeit ist es, die Hauptfaktoren zu identifizieren, die die Schlafqualität beeinflussen, mithilfe von bayesianischen Modellen und statistischen Analysen.
+Dieses Repository enthält den Code und die Daten zur Analyse der Einflussfaktoren auf die Schlafqualität, basierend auf der Bachelorarbeit **"Bayesianische Analyse der Einflussfaktoren auf die Schlafqualität: Eine Fallstudie basierend auf Smart-Ring-Daten"**. Das Ziel dieser Arbeit ist es, die Hauptfaktoren zu identifizieren, die die Schlafqualität beeinflussen, mithilfe von bayesianischen Modellen und statistischen Analysen.
 
 ---
 
